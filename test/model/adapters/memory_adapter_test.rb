@@ -1208,15 +1208,64 @@ describe Lotus::Model::Adapters::MemoryAdapter do
       end
     end
 
-    describe '#disconnect' do
-      before do
-        @adapter.disconnect
+    describe 'group' do
+      describe 'with an empty collection' do
+        it 'returns nil' do
+          result = @adapter.query(collection) do
+            all
+          end.group(:age)
+
+          result.size.must_equal 0
+          result.must_equal []
+        end
       end
 
-      it 'raises error' do
-        exception = -> { @adapter.create(collection, TestUser.new) }.must_raise Lotus::Model::Adapters::DisconnectedAdapterError
-        exception.message.must_match "You have tried to perform an operation on a disconnected adapter"
+      describe 'with a filled collection' do
+        before do
+          @adapter.create(collection, user1)
+          @adapter.create(collection, user2)
+          @adapter.create(collection, user3)
+          @adapter.create(collection, user4)
+          @adapter.create(collection, user5)
+          @adapter.create(collection, user6)
+          @adapter.create(collection, user7)
+        end
+
+        let(:user1) { TestUser.new(name: 'L', age: 32) }
+        let(:user2) { TestUser.new(name: 'L', age: 10) }
+        let(:user3) { TestUser.new(name: 'L', age: 11) }
+        let(:user4) { TestUser.new(name: 'A', age: 12) }
+        let(:user5) { TestUser.new(name: 'A', age: 12) }
+        let(:user6) { TestUser.new(name: 'T', age: 11) }
+        let(:user7) { TestUser.new(name: 'O', age: 10) }
+
+        it 'group by one column' do
+          result = @adapter.query(collection) do
+            all
+          end.group(:name)
+
+          result.size.must_equal 4
+        end
+
+        it 'group by two columns' do
+          result = @adapter.query(collection) do
+            all
+          end.group(:name, :age)
+
+          result.size.must_equal 6
+        end
       end
+    end
+  end
+
+  describe '#disconnect' do
+    before do
+      @adapter.disconnect
+    end
+
+    it 'raises error' do
+      exception = -> { @adapter.create(collection, TestUser.new) }.must_raise Lotus::Model::Adapters::DisconnectedAdapterError
+      exception.message.must_match "You have tried to perform an operation on a disconnected adapter"
     end
   end
 end

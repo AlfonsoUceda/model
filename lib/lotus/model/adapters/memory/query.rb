@@ -550,8 +550,15 @@ module Lotus
           # @since 0.5.0
           #
           # @see Lotus::Model::Adapters::Sql::Query#group!
-          def group
-            raise NotImplementedError
+          def group(*columns)
+            grouped = {}
+            all.map do |record|
+              selected_columns = columns.map do |column|
+                record[column]
+              end.join
+              grouped[selected_columns] ||= record
+            end
+            grouped.values
           end
 
           protected
